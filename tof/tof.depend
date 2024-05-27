@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1716365647 source:c:\hhs\mc1\blok4project\tof\fuse.c
+	<avr/io.h>
+
+1716467943 source:c:\hhs\mc1\blok4project\tof\main.c
+	<avr/io.h>
+	<util/delay.h>
+	<avr/interrupt.h>
+
