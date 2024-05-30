@@ -1,0 +1,13 @@
+# depslib dependency file v1.0
+1716134187 source:d:\school\project mechatronica 4\project agv\avgstatemachinev1\fuse.c
+	<avr/io.h>
+
+1716470715 source:d:\school\project mechatronica 4\project agv\avgstatemachinev1\main.c
+	<avr/io.h>
+
+1716134187 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\avgstatemachinev1\fuse.c
+	<avr/io.h>
+
+1716815886 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\avgstatemachinev1\main.c
+	<avr/io.h>
+
