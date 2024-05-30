@@ -1,0 +1,26 @@
+# depslib dependency file v1.0
+1716473539 source:d:\school\project mechatronica 4\project agv\sonartest\fuse.c
+	<avr/io.h>
+
+1716475946 source:d:\school\project mechatronica 4\project agv\sonartest\main.c
+	<avr/io.h>
+
+1716473539 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\sonartest\fuse.c
+	<avr/io.h>
+
+1702898964 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\sonartest\lcd.c
+	<stdlib.h>
+	<string.h>
+	<stdio.h>
+	"LCD.h"
+
+1702898659 d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\sonartest\lcd.h
+	<avr/io.h>
+	<util/delay.h>
+
+1716848915 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\sonartest\main.c
+	<avr/io.h>
+	<util/delay.h>
+	<avr/interrupt.h>
+	"LCD.h"
+
