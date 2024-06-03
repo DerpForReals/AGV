@@ -131,6 +131,7 @@
 
 	void updateLCDScreen(uint8_t, char *, int, char *);
 	void displayLCD_main(uint8_t, char *, uint8_t, char *);
+	void lcd_mywrite(uint8_t, char*);
 
 
 #endif /* DEFINESLCD_H_ */

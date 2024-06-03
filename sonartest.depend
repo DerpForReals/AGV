@@ -8,17 +8,17 @@
 1716473539 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\sonartest\fuse.c
 	<avr/io.h>
 
-1702898964 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\sonartest\lcd.c
+1717182829 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\sonartest\lcd.c
 	<stdlib.h>
 	<string.h>
 	<stdio.h>
 	"LCD.h"
 
-1702898659 d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\sonartest\lcd.h
+1717182626 d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\sonartest\lcd.h
 	<avr/io.h>
 	<util/delay.h>
 
-1716848915 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\sonartest\main.c
+1717412224 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\sonartest\main.c
 	<avr/io.h>
 	<util/delay.h>
 	<avr/interrupt.h>

@@ -273,5 +273,22 @@ void lcd_check_BF_4(void)
     set_RW_LOW_write;               // write to LCD module (RW low)
     set_D7_output;                  // reset D7 data direction to output
 }
+/* *****************************************************************
+Name:		lcd_mywrite(0
+Inputs:		row, stringdata
+Outputs:	none
+Description:prints a string on the desired row
+******************************************************************** */
+void lcd_mywrite(uint8_t row, char * s1){
+                   switch(row) {
+        case 1: /* ======= Line 1 ======= */
+			lcd_write_instruction_4f(lcd_SetCursor | lcd_LineOne);
+			break;
+		case 2: /* ======= Line 2 ======= */
+			lcd_write_instruction_4f(lcd_SetCursor | lcd_LineTwo);
+			break;
+	}
+	//lcd_write_string_4f((unsigned char*) charRow);
 
+}
 
