@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1703071919 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\3hbrugdrivers\fuse.c
+	<avr/io.h>
+
+1703173273 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\3hbrugdrivers\main.c
+	<avr/io.h>
+	<avr/interrupt.h>
+
