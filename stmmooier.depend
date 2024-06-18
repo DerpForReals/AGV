@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1718701745 source:c:\hhs\mc1\blok4project\stmmooier\fuse.c
+	<avr/io.h>
+
+1718710630 source:c:\hhs\mc1\blok4project\stmmooier\main.c
+	<avr/io.h>
+	<avr/interrupt.h>
+	<util/delay.h>
+
