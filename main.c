@@ -1,14 +1,17 @@
 /*
  */
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 void initleds(void){
-    PORTA |= (1<<PA3)| (1<<PA4) | (1<<PA5)| (1<<PA6)| (1<<PA7);
+    DDRA |= (1<<PA3)| (1<<PA4) | (1<<PA5)| (1<<PA6)| (1<<PA7);
 }
 void initknoppen(void){
-    PORTA &= ~(1<<PA0) & ~(1<<PA1) & ~(1<<PA2);
+    DDRA &= ~(1<<PA0) & ~(1<<PA1) & ~(1<<PA2);
+}
+void initsensoren(void){
+    DDRE &= (1<<PE3) & (1<<PE4) & (1<<PE5);
+    DDRG &= (1<<PG5);
 }
 void rechtsboomled(int aan){
     if (aan) PORTA |= (1<<PA3);
@@ -72,6 +75,26 @@ int leestfollowknopuit(void){
         if ((PINA & (1<<PA1)) == 0) return(0);
         if ((PINA & (1<<PA1)) != 0) return(1);
 }
+int detecteerboomlinks(void){
+    //PIN 2 = PE4
+    if ((PINE & (1<<PE4)) == 0) return(0);
+    if ((PINE & (1<<PE4)) != 0) return(1);
+}
+int detecteerboomrechts(void){
+    //PIN 3 = PE5
+    if ((PINE & (1<<PE5)) == 0) return(0);
+    if ((PINE & (1<<PE5)) != 0) return(1);
+}
+int detecteerlatlinks(void){
+    //PIN 4 = PG5
+    if ((PING & (1<<PG5)) == 0) return(0);
+    if ((PING & (1<<PG5)) != 0) return(1);
+}
+int detecteerlatrechts(void){
+    //PIN 5 = PE3
+    if ((PINE & (1<<PE3)) == 0) return(0);
+    if ((PINE & (1<<PE3)) != 0) return(1);
+}
 void initmotoren(void){
     //timer 1 de l richting:
     DDRB |= (1<<PB5) | (1<<PB6);
@@ -119,7 +142,9 @@ int main(void)
     initleds();
     initknoppen();
     initmotoren();
-
+    initsensoren();
+    //lsnelheid(21);
+    //rsnelheid(20);
     rechtsboomled(1);
     linksboomled(1);
     followled(0);
