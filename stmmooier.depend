@@ -2,8 +2,19 @@
 1718701745 source:c:\hhs\mc1\blok4project\stmmooier\fuse.c
 	<avr/io.h>
 
-1718710630 source:c:\hhs\mc1\blok4project\stmmooier\main.c
+1718714216 source:c:\hhs\mc1\blok4project\stmmooier\main.c
 	<avr/io.h>
 	<avr/interrupt.h>
 	<util/delay.h>
+	"LCD.h"
+
+1718713970 c:\hhs\mc1\blok4project\stmmooier\lcd.h
+	<avr/io.h>
+	<util/delay.h>
+
+1718713876 source:c:\hhs\mc1\blok4project\stmmooier\lcd.c
+	<stdlib.h>
+	<string.h>
+	<stdio.h>
+	"LCD.h"
 

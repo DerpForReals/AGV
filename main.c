@@ -9,6 +9,8 @@ STM Met Aangevulde Cases + Geüpdatet functies.
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
+#include "LCD.h"
+
 
 
 
@@ -23,19 +25,35 @@ int bomenL_Geteld = 0; // Bomen bijhouden links
 
 int rijstrook = 1; // Begint bij rijstrook 1
 
+volatile uint16_t clicks;
+volatile int flag = 0;
+volatile int afstand;
+volatile int fe = 0;
+volatile int re = 0;
+
 
 
 // Init Functies:
 void init(void){
     initleds();
+    initbuzzer();
     initknoppen();
     initmotoren();
     initsensoren();
+
+    //initLCD();
+    initsonars();
+    /*updateLCDScreen(1, "clicks:", clicks, "");
+    updateLCDScreen(2, "afstand:", afstand, "mm" ); */
 }
 
 void initleds(void){
     DDRA |= (1<<PA3)| (1<<PA4) | (1<<PA5)| (1<<PA6)| (1<<PA7);
     // BoomRechts; BoomLinks; Follow; AanLed; NoodstopAan
+}
+
+void initbuzzer(void){
+    DDRL |= (1<<PL2); //pin 37
 }
 
 void initknoppen(void){
@@ -65,9 +83,46 @@ void initmotoren(void){
 
     rrichting(0);
     lrichting(0);
+}
+
+void initsonars(void){
+    /* ECHO PL0, ICP4 = PIN49
+       TRIGGER PB2, PIN51
+       MULTIPLEXER A PB0, PIN53 ->  pin 14 op de chip
+       MULTIPLEXER B PB1, PIN52 -> pin 2 op de chip
+    */
 
 
 
+    DDRL &= ~(1<<PL0); //ICP4 als input
+    DDRB |= (1<<PB1); //MUXA als output
+    DDRB |= (1<<PB0); //MUXB als output
+    DDRB |= (1<<PB2); //TRIGER als output
+    //DDRH |= (1<<PH3); //S0 enable als output
+    //DDRH |= (1<<PH4); //S1 enable als output
+
+    PORTH &= ~(1<<PH3); PORTH &= ~(1<<PH4); //alle sensoren uit
+
+    TCCR4B = (1<<CS11); // /8 klokdeler
+	TCCR4B |= (1<<ICNC4); //enable input capture noise canceler
+	TCCR4B |= (1<<ICES4); //change input capture edge select on rising edge
+	TIMSK4 |= (1<<ICIE4) | (1<<TOIE4); //enable input capture interrupt & timer overflow
+	TIFR4 = (1<<ICF4) | (1<<TOV4); //clear input capture flag & timer overflow flag
+    TCNT4 = 0;
+	flag = 0;
+    sei();
+}
+
+
+// Reken Functies:
+int draaiing(void){
+    // Berekening om te kijken of rijstrook getal even of oneven is, zodat de AGV weet welke kant die op moet draaien.
+
+    int uitwerking;
+
+    uitwerking = rijstrook%2;
+
+    return uitwerking;
 }
 
 
@@ -108,6 +163,13 @@ void noodstopled(int aan){
     }
 }
 
+
+// Buzzer Functie:
+void buzzer(int aan){
+    if (aan) PORTL |= (1<<PL2);
+    else {
+            PORTL &= ~(1<<PL2);}
+}
 
 
 // Knop Functies:
@@ -154,6 +216,49 @@ int detecteerlatrechts(void){
 }
 
 
+// Sonars Uitlezen:
+int leessonaruit(int sensor){
+    switch(sensor){
+default:
+    return 0;
+    break;
+    //als je een getal opgeeft wat niet gelinkt is aan een sensor geeft de functie 0 terug.
+case 0: // Voorkant
+    //AB = 00
+    PORTB &= ~(1<<PB0);
+    PORTB &= ~(1<<PB1);
+    break;
+case 1: // Links
+    //AB = 10
+     PORTB |= (1<<PB0);
+    PORTB &= ~(1<<PB1);
+    break;
+case 2: // Rechts
+    //AB =01
+     PORTB &= ~(1<<PB0);
+    PORTB |= (1<<PB1);
+    break;
+case 3:
+    //AB = 11
+    PORTB |= (1<<PB0);
+    PORTB |= (1<<PB1);
+    break;
+    }
+    PORTB |= (1<<PB2);
+    _delay_us(2);
+    PORTB &= ~(1<<PB2);
+        flag = 0;
+        TCNT4 = 0;
+    	TCCR4B |= (1<<CS40); //start de timer
+    	TIMSK4 |= (1<<ICIE4); //enable input capture interrupts
+    	while(flag < 2){}
+    	//clicks = fall_edge - rise_edge;
+    	//updateLCDScreen(1, "RE:",re, "");
+    	afstand = (fe *0.858)-20;
+    	if (afstand < 0 ) afstand = 0;
+       return afstand;
+}
+
 
 // Rijd Functies:
 void rrichting(int richting){
@@ -193,13 +298,42 @@ void rsnelheid(int snelheid){
 
 
 
+// Interrupts:
+ISR(TIMER4_CAPT_vect){
+	if (flag == 0)  //rising edge
+	{
+		re = ICR4; //save rise fall edge time to input capture register
+		TCCR4B &= ~(1<<ICES4); //change input capture edge select on falling edge
+		TCNT4 = 0;
+	}
+	if (flag == 1) //falling edge
+	{
+		fe = ICR4; //save fall edge time to input capture register
+        TCCR4B |= (1<<ICES4); //change input capture edge select on rising edge
+		TIMSK4 &= ~(1<<ICIE4); //disable input capture interrupt
+		TCCR4B &= ~(1<<CS40); //stop de timer
+		TCNT1 = 0;
+	}
+	flag ++; //increment flag
+}
+
+ISR(TIMER4_OVF_vect){
+    flag = 3;
+    fe = 0;
+    re = 0;
+    TCCR4B |= (1<<ICES4); //change input capture edge select on rising edge
+    TIMSK4 &= ~(1<<ICIE4); //disable input capture interrupt
+    TCCR4B &= ~(1<<CS40); //stop de timer
+    TCNT1 = 0;
+}
+
 
 
 
 // Main Functie
 int main(void){
     init();
-    enum states {Rechtdoorrijden, Draaien, Volgen, Noodstop, Uit, BoomSignaleren};
+    enum states {Rechtdoorrijden, DraaienR, DraaienL, Volgen, Noodstop, Uit, BoomSignaleren};
     int state;
     state = Uit;
     while(1){
@@ -262,8 +396,13 @@ int main(void){
                 break;
             }
 
-            if((!detecteerlatlinks()) && (!detecteerlatrechts())){
-                state = Draaien;
+            if((!detecteerlatlinks()) && (draaiing() == 0)){
+                state = DraaienL;
+                break;
+            }
+
+            if((!detecteerlatrechts()) && (draaiing() == 1)){
+                state = DraaienR;
                 break;
             }
             break;
@@ -289,8 +428,36 @@ int main(void){
             }
             break;
 
-        case Draaien:
+        case DraaienR:
 
+            // Laten draaien
+            rsnelheid(10);
+            lsnelheid(21);
+
+            // uit state als sonar rechts minder dan 50 mm
+            // Dan rechtdoor
+            // Hier ook verder
+
+            if(leestnoodstopuit()){
+                    state = Noodstop;
+                    break;
+            }
+            break;
+
+        case DraaienL:
+
+            // Laten rijden
+            rsnelheid(20);
+            lsnelheid(10);
+
+            // uit state als sonar links minder dan 50 mm
+            // Dan rechtdoor
+            if(leessonaruit(1)) // Verder hier
+
+            if(leestnoodstopuit()){
+                    state = Noodstop;
+                    break;
+            }
             break;
 
         case Volgen:
@@ -318,15 +485,27 @@ int main(void){
                 rechtsboomled(1);
             }
 
-            // buzzer aan, moet nog
+            // Buzzer gaat 1 seconde aan en noodstop kan gedetecteerd worden
+            buzzer(1);
 
-            // Even de led aan laten
-            for(int i = 0; i < 7; i++){
+            for(int i = 0; i < 11; i++){
                 if(leestnoodstopuit()){
                     state = Noodstop;
                     break;
+                }
+                _delay_ms(100);
             }
-                _delay_ms(500);
+
+            buzzer(0);
+
+
+            // Even de led aan laten
+            for(int i = 0; i < 31; i++){
+                if(leestnoodstopuit()){
+                    state = Noodstop;
+                    break;
+                }
+                _delay_ms(100);
             }
 
 
@@ -346,3 +525,15 @@ int main(void){
     }
     return 0;
 }
+
+// Voor debugging:
+/*
+while(1){
+        _delay_ms(1000);
+        updateLCDScreen(1, "afstand:",leessonaruit(0), "mm");
+        updateLCDScreen(2, "sensor:", 0, "" );
+        _delay_ms(1000);
+        updateLCDScreen(1, "afstand:",leessonaruit(1), "mm");
+        updateLCDScreen(2, "sensor:", 1, "" );
+    }
+*/
