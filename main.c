@@ -16,6 +16,12 @@ STM Met Aangevulde Cases + Geüpdatet functies.
 
 // Standaard Set Variables:
 int aan_Onthouden = 0; // Onthouden of knop is ingedrukt of niet
+int noodstop_Onthouden; // Om te onthouden of de noodstop is ingedrukt
+
+int draaienL_Onthouden; // Deze waardes zodat je weer van noodstop naar draaien kan
+int draaienR_Onthouden;
+
+int heeftZiel = 1; // De AGV heeft een ziel en heeft ook senses
 
 int boomR_Gezien = 0; // Om bij te houden dat Rechter boom is gedetecteerd
 int boomL_Gezien = 0; // Om bij te houden dat Linker boom is gedetecteerd
@@ -125,6 +131,16 @@ int draaiing(void){
     return uitwerking;
 }
 
+int latVerschil(void){
+    // Berekening om te kijken of de AGV te ver van zijn route afwijkt
+
+    int verschil;
+
+    verschil = leessonaruit(1) - leessonaruit(2);
+
+    return verschil;
+}
+
 
 
 // Led Functies:
@@ -174,18 +190,36 @@ void buzzer(int aan){
 
 // Knop Functies:
 int leestnoodstopuit(void){
-        if ((PINA & (1<<PA2)) == 0) return(0);
-        if ((PINA & (1<<PA2)) != 0) return(1);
+        if ((PINA & (1<<PA2)) == 0){
+            _delay_ms(20);
+            return(0);
+            }
+        if ((PINA & (1<<PA2)) != 0){
+            _delay_ms(20);
+            return(1);
+            }
 }
 
 int leestaanknopuit(void){
-        if ((PINA & (1<<PA0)) == 0) return(0);
-        if ((PINA & (1<<PA0)) != 0) return(1);
+        if ((PINA & (1<<PA0)) == 0){
+            _delay_ms(20);
+            return(0);
+            }
+        if ((PINA & (1<<PA0)) != 0){
+            _delay_ms(20);
+            return(1);
+            }
 }
 
 int leestfollowknopuit(void){
-        if ((PINA & (1<<PA1)) == 0) return(0);
-        if ((PINA & (1<<PA1)) != 0) return(1);
+        if ((PINA & (1<<PA1)) == 0){
+            _delay_ms(20);
+            return(0);
+            }
+        if ((PINA & (1<<PA1)) != 0){
+            _delay_ms(20);
+            return(1);
+            }
 }
 
 
@@ -258,6 +292,7 @@ case 3:
     	if (afstand < 0 ) afstand = 0;
        return afstand;
 }
+
 
 
 // Rijd Functies:
@@ -333,7 +368,7 @@ ISR(TIMER4_OVF_vect){
 // Main Functie
 int main(void){
     init();
-    enum states {Rechtdoorrijden, DraaienR, DraaienL, Volgen, Noodstop, Uit, BoomSignaleren};
+    enum states {Rechtdoorrijden, DraaienR, DraaienL, Volgen, Noodstop, Uit, BoomSignaleren, RouteCorrigeren};
     int state;
     state = Uit;
     while(1){
@@ -351,6 +386,26 @@ int main(void){
             rrichting(0);
             lrichting(0);
 
+            if(leestnoodstopuit() && (noodstop_Onthouden == 1))
+            {
+                noodstop_Onthouden = 0;
+            }
+
+            if(leestaanknopuit() && (noodstop_Onthouden == 0))
+            {
+                if(draaienL_Onthouden == 1){
+                    state = DraaienL;
+                    break;
+                }
+                else if(draaienR_Onthouden == 1){
+                    state = DraaienR;
+                    break;
+                }
+                else{
+                    state = Rechtdoorrijden;
+                    break;
+                }
+            }
 
             break;
 
@@ -366,14 +421,16 @@ int main(void){
             lrichting(1);
 
 
-            if(leestnoodstopuit()){
-                    state = Noodstop;
-                    break;
+
+            if(leestnoodstopuit() || (leessonaruit(0) < 25)){
+                noodstop_Onthouden = 1;
+                state = Noodstop;
+                break;
             }
             if((leestaanknopuit()) && (aan_Onthouden == 1)){
-                    aan_Onthouden = 0;
-                    state = Uit;
-                    break;
+                aan_Onthouden = 0;
+                state = Uit;
+                break;
             }
 
             if((detecteerboomlinks()) && (!boomL_Gezien)){
@@ -396,15 +453,30 @@ int main(void){
                 break;
             }
 
+            if(((!detecteerlatlinks()) && (!detecteerlatrechts())) && (rijstrook > 4))
+            {
+                state = Uit;
+                break;
+            }
+
             if((!detecteerlatlinks()) && (draaiing() == 0)){
+                draaienL_Onthouden = 1;
                 state = DraaienL;
                 break;
             }
 
             if((!detecteerlatrechts()) && (draaiing() == 1)){
+                draaienR_Onthouden = 1;
                 state = DraaienR;
                 break;
             }
+
+            if((latVerschil() > 10) || (latVerschil() < -10))
+            {
+                state = RouteCorrigeren;
+                break;
+            }
+
             break;
 
         case Uit:
@@ -417,15 +489,26 @@ int main(void){
             DDRL &= ~(1<<PL2);//2A L
             lrichting(0);
             rrichting(0);
+
+            /*
             if(leestnoodstopuit()){
-                    state = Noodstop;
-                    break;
+                noodstop_Onthouden = 1;
+                state = Noodstop;
+                break;
             }
+            */
+
             if((leestaanknopuit()) && (aan_Onthouden == 0)){
-                    aan_Onthouden = 1;
-                    state = Rechtdoorrijden;
-                    break;
+                aan_Onthouden = 1;
+                state = Rechtdoorrijden;
+                break;
             }
+
+            if(leestfollowknopuit()){
+                state = Volgen;
+                break;
+            }
+
             break;
 
         case DraaienR:
@@ -436,11 +519,17 @@ int main(void){
 
             // uit state als sonar rechts minder dan 50 mm
             // Dan rechtdoor
-            // Hier ook verder
+            if(leessonaruit(2) < 30){
+                draaienR_Onthouden = 0;
+                rijstrook += 1;
+                state = Rechtdoorrijden;
+                break;
+            }
 
             if(leestnoodstopuit()){
-                    state = Noodstop;
-                    break;
+                noodstop_Onthouden = 1;
+                state = Noodstop;
+                break;
             }
             break;
 
@@ -451,18 +540,38 @@ int main(void){
             lsnelheid(10);
 
             // uit state als sonar links minder dan 50 mm
-            // Dan rechtdoor
-            if(leessonaruit(1)) // Verder hier
+            // Daarna weer rechtdoor rijden
+            if(leessonaruit(1) < 30){
+                draaienL_Onthouden = 0;
+                rijstrook += 1;
+                state = Rechtdoorrijden;
+                break;
+            }
 
             if(leestnoodstopuit()){
-                    state = Noodstop;
-                    break;
+                noodstop_Onthouden = 1;
+                state = Noodstop;
+                break;
             }
             break;
 
         case Volgen:
             followled(1);
 
+            // In deze toestand rijdt hij niet, omdat het (nog) niet geprogrammeerd is
+            rsnelheid(0);
+            lsnelheid(0);
+
+            if(leestaanknopuit()){
+                state = Uit;
+                break;
+            }
+
+            if(leestnoodstopuit()){
+                noodstop_Onthouden = 1;
+                state = Noodstop;
+                break;
+            }
             break;
 
         case BoomSignaleren:
@@ -490,6 +599,8 @@ int main(void){
 
             for(int i = 0; i < 11; i++){
                 if(leestnoodstopuit()){
+                    buzzer(0);
+                    noodstop_Onthouden = 1;
                     state = Noodstop;
                     break;
                 }
@@ -502,6 +613,9 @@ int main(void){
             // Even de led aan laten
             for(int i = 0; i < 31; i++){
                 if(leestnoodstopuit()){
+                    linksboomled(0);
+                    rechtsboomled(0);
+                    noodstop_Onthouden = 1;
                     state = Noodstop;
                     break;
                 }
@@ -513,8 +627,9 @@ int main(void){
             rechtsboomled(0);
 
             if(leestnoodstopuit()){
-                    state = Noodstop;
-                    break;
+                noodstop_Onthouden = 1;
+                state = Noodstop;
+                break;
             }
             else{
                 state = Rechtdoorrijden;
