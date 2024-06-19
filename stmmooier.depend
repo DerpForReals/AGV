@@ -2,7 +2,7 @@
 1718701745 source:c:\hhs\mc1\blok4project\stmmooier\fuse.c
 	<avr/io.h>
 
-1718714216 source:c:\hhs\mc1\blok4project\stmmooier\main.c
+1718798557 source:c:\hhs\mc1\blok4project\stmmooier\main.c
 	<avr/io.h>
 	<avr/interrupt.h>
 	<util/delay.h>

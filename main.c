@@ -17,6 +17,11 @@ STM Met Aangevulde Cases + Geüpdatet functies.
 // Standaard Set Variables:
 int aan_Onthouden = 0; // Onthouden of knop is ingedrukt of niet
 int noodstop_Onthouden; // Om te onthouden of de noodstop is ingedrukt
+int volgen_Onthouden;
+int corrigeren_Onthouden;
+int uit_Onthouden;
+
+int uitVolgen;
 
 int draaienL_Onthouden; // Deze waardes zodat je weer van noodstop naar draaien kan
 int draaienR_Onthouden;
@@ -192,34 +197,34 @@ void buzzer(int aan){
 
 // Knop Functies:
 int leestnoodstopuit(void){
-        if ((PINA & (1<<PA2)) == 0){
-            _delay_ms(20);
+        if ((PINA & (1<<PA2)) == 0)
+            {
             return(0);
             }
-        if ((PINA & (1<<PA2)) != 0){
-            _delay_ms(20);
+        if ((PINA & (1<<PA2)) != 0)
+            {
             return(1);
             }
 }
 
 int leestaanknopuit(void){
-        if ((PINA & (1<<PA0)) == 0){
-            _delay_ms(20);
+        if ((PINA & (1<<PA1)) == 0)
+            {
             return(0);
             }
-        if ((PINA & (1<<PA0)) != 0){
-            _delay_ms(20);
+        if ((PINA & (1<<PA1)) != 0)
+            {
             return(1);
             }
 }
 
 int leestfollowknopuit(void){
-        if ((PINA & (1<<PA1)) == 0){
-            _delay_ms(20);
+        if ((PINA & (1<<PA0)) == 0)
+            {
             return(0);
             }
-        if ((PINA & (1<<PA1)) != 0){
-            _delay_ms(20);
+        if ((PINA & (1<<PA0)) != 0)
+            {
             return(1);
             }
 }
@@ -377,6 +382,7 @@ int main(void){
     switch (state){
         case Noodstop:
             onled(0);
+            followled(0);
             noodstopled(1);
 
 
@@ -388,19 +394,33 @@ int main(void){
             rrichting(0);
             lrichting(0);
 
-            if(leestnoodstopuit() && (noodstop_Onthouden == 1))
+
+
+            if(((PINA & (1<<PA2)) != 0) && (noodstop_Onthouden == 1))
             {
+                _delay_ms(20);
                 noodstop_Onthouden = 0;
             }
 
             if(leestaanknopuit() && (noodstop_Onthouden == 0))
             {
+                _delay_ms(20);
                 if(draaienL_Onthouden == 1){
                     state = DraaienL;
                     break;
                 }
                 else if(draaienR_Onthouden == 1){
                     state = DraaienR;
+                    break;
+                }
+                else if(volgen_Onthouden == 1)
+                {
+                    state = Volgen;
+                    break;
+                }
+                else if(corrigeren_Onthouden == 1)
+                {
+                    state = RouteCorrigeren;
                     break;
                 }
                 else{
@@ -422,20 +442,44 @@ int main(void){
             rrichting(1);
             lrichting(1);
 
+            /*
 
+            if(leessonaruit(0) < 25)
+            {
+                rsnelheid(0);
+                lsnelheid(0);
+            }
+            else
+            {
+                rsnelheid(20);
+                lsnelheid(21);
+            }*/
 
-            if(leestnoodstopuit() || (leessonaruit(0) < 25)){
+            if((uitVolgen) && (!leestaanknopuit()))
+            {
+                uitVolgen = 0;
+            }
+
+            if(((PINA & (1<<PA2)) != 0) && (noodstop_Onthouden == 0)){
+                _delay_ms(20);
                 noodstop_Onthouden = 1;
                 state = Noodstop;
                 break;
             }
-            if((leestaanknopuit()) && (aan_Onthouden == 1)){
+
+            if((uit_Onthouden == 1) && (!(leestaanknopuit())))
+            {
+                uit_Onthouden = 0;
+            }
+            if((leestaanknopuit()) && (aan_Onthouden == 1) && (!uitVolgen) && (uit_Onthouden == 0)){
+                _delay_ms(20);
                 aan_Onthouden = 0;
+                uit_Onthouden = 1;
                 state = Uit;
                 break;
             }
 
-            if((detecteerboomlinks()) && (!boomL_Gezien)){
+            /*if((detecteerboomlinks()) && (!boomL_Gezien)){
                 boomL_Gezien = 1;
                 state = BoomSignaleren;
                 break;
@@ -477,13 +521,21 @@ int main(void){
             {
                 rsnelheid(0);
                 lsnelheid(0);
+                corrigeren_Onthouden = 1;
                 state = RouteCorrigeren;
                 break;
-            }
+            } */
 
             break;
 
         case RouteCorrigeren:
+
+            if(((PINA & (1<<PA2)) != 0) && (noodstop_Onthouden == 0)){
+                _delay_ms(20);
+                noodstop_Onthouden = 1;
+                state = Noodstop;
+                break;
+            }
 
             if(latVerschil() > 9)
             {
@@ -516,19 +568,36 @@ int main(void){
 
             /*
             if(leestnoodstopuit()){
+                _delay_ms(20);
                 noodstop_Onthouden = 1;
                 state = Noodstop;
                 break;
             }
             */
 
-            if((leestaanknopuit()) && (aan_Onthouden == 0)){
+            if((uitVolgen) && (!leestaanknopuit()))
+            {
+                _delay_ms(20);
+                uitVolgen = 0;
+            }
+
+            if(!(leestaanknopuit()) && (uit_Onthouden))
+            {
+                _delay_ms(20);
+                uit_Onthouden = 0;
+            }
+
+            if((leestaanknopuit()) && (aan_Onthouden == 0) && (!uitVolgen) && (!uit_Onthouden)){
+                _delay_ms(20);
                 aan_Onthouden = 1;
+                uit_Onthouden = 1;
                 state = Rechtdoorrijden;
                 break;
             }
 
-            if(leestfollowknopuit()){
+            if(leestfollowknopuit() && (volgen_Onthouden == 0)){
+                _delay_ms(20);
+                volgen_Onthouden = 1;
                 state = Volgen;
                 break;
             }
@@ -550,7 +619,8 @@ int main(void){
                 break;
             }
 
-            if(leestnoodstopuit()){
+            if(((PINA & (1<<PA2)) != 0) && (noodstop_Onthouden == 0)){
+                _delay_ms(20);
                 noodstop_Onthouden = 1;
                 state = Noodstop;
                 break;
@@ -572,7 +642,8 @@ int main(void){
                 break;
             }
 
-            if(leestnoodstopuit()){
+            if(((PINA & (1<<PA2)) != 0) && (noodstop_Onthouden == 0)){
+                _delay_ms(20);
                 noodstop_Onthouden = 1;
                 state = Noodstop;
                 break;
@@ -587,11 +658,15 @@ int main(void){
             lsnelheid(0);
 
             if(leestaanknopuit()){
+                _delay_ms(20);
+                volgen_Onthouden = 0;
+                uitVolgen = 1;
                 state = Uit;
                 break;
             }
 
-            if(leestnoodstopuit()){
+            if(((PINA & (1<<PA2)) != 0) && (noodstop_Onthouden == 0)){
+                _delay_ms(20);
                 noodstop_Onthouden = 1;
                 state = Noodstop;
                 break;
@@ -622,8 +697,9 @@ int main(void){
             buzzer(1);
 
             for(int i = 0; i < 11; i++){
-                if(leestnoodstopuit()){
+                if(((PINA & (1<<PA2)) != 0) && (noodstop_Onthouden == 0)){
                     buzzer(0);
+                    _delay_ms(20);
                     noodstop_Onthouden = 1;
                     state = Noodstop;
                     break;
@@ -636,9 +712,10 @@ int main(void){
 
             // Even de led aan laten
             for(int i = 0; i < 31; i++){
-                if(leestnoodstopuit()){
+                if(((PINA & (1<<PA2)) != 0) && (noodstop_Onthouden == 0)){
                     linksboomled(0);
                     rechtsboomled(0);
+                    _delay_ms(20);
                     noodstop_Onthouden = 1;
                     state = Noodstop;
                     break;
@@ -650,7 +727,8 @@ int main(void){
             linksboomled(0);
             rechtsboomled(0);
 
-            if(leestnoodstopuit()){
+            if(((PINA & (1<<PA2)) != 0) && (noodstop_Onthouden == 0)){
+                _delay_ms(20);
                 noodstop_Onthouden = 1;
                 state = Noodstop;
                 break;
