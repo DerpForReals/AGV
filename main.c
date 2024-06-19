@@ -505,12 +505,12 @@ int main(void){
 
         case Uit:
             onled(0);
+            followled(0);
+            noodstopled(0);
 
+            rsnelheid(0);
+            lsnelheid(0);
 
-            PORTB |= (1<<PB6); //rechter motor uit
-            PORTB |= (1<<PB7);  //linker motor uit
-            DDRL &= ~(1<<PL1);//1A L
-            DDRL &= ~(1<<PL2);//2A L
             lrichting(0);
             rrichting(0);
 
