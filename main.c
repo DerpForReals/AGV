@@ -94,6 +94,8 @@ void initmotoren(void){
 
     rrichting(0);
     lrichting(0);
+
+
 }
 
 void initsonars(void){
@@ -316,8 +318,8 @@ void rrichting(int richting){
 
 void lrichting(int richting){
     if (richting){
-            TCCR4A &= ~(1<<COM4B1); //achteruit uit
-            TCCR4A |= (1<<COM4A1); //vooruit aan
+        TCCR4A &= ~(1<<COM4B1); //achteruit uit
+        TCCR4A |= (1<<COM4A1); //vooruit aan
     }
     else{
         TCCR4A &= ~(1<<COM4A1); //zet vooruit uit
@@ -404,6 +406,7 @@ int main(void){
 
             if(leestaanknopuit() && (noodstop_Onthouden == 0))
             {
+                noodstopled(0);
                 _delay_ms(20);
                 if(draaienL_Onthouden == 1){
                     state = DraaienL;
@@ -438,9 +441,9 @@ int main(void){
             rsnelheid(20);
             lsnelheid(21);
 
-            // 1 zodat die vooruit rijdt
-            rrichting(1);
-            lrichting(1);
+            // 0 zodat die vooruit rijdt
+            rrichting(0);
+            lrichting(0);
 
             /*
 
