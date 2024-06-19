@@ -1,0 +1,19 @@
+# depslib dependency file v1.0
+1703075519 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\avrmotorendrivers\fuse.c
+	<avr/io.h>
+
+1718818457 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\avrmotorendrivers\main.c
+	<avr/io.h>
+	<avr/interrupt.h>
+	<util/delay.h>
+
+1717182829 source:d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\avrmotorendrivers\lcd.c
+	<stdlib.h>
+	<string.h>
+	<stdio.h>
+	"LCD.h"
+
+1717182626 d:\school\microcontroller programmeren 1&2\qc projecten mechatronica\avrmotorendrivers\lcd.h
+	<avr/io.h>
+	<util/delay.h>
+
