@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1716124108 source:c:\users\elmas\documents\codeblocks code\test\main.c
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	<unistd.h>
+
