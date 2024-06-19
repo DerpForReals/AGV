@@ -137,6 +137,8 @@ int latVerschil(void){
     int verschil;
 
     verschil = leessonaruit(1) - leessonaruit(2);
+    // Positief = Meer naar rechts
+    // Negatief = Meer naar links
 
     return verschil;
 }
@@ -471,9 +473,31 @@ int main(void){
                 break;
             }
 
-            if((latVerschil() > 10) || (latVerschil() < -10))
+            if((latVerschil() > 9) || (latVerschil() < -9))
             {
+                rsnelheid(0);
+                lsnelheid(0);
                 state = RouteCorrigeren;
+                break;
+            }
+
+            break;
+
+        case RouteCorrigeren:
+
+            if(latVerschil() > 9)
+            {
+                rsnelheid(20);
+                lsnelheid(5);
+            }
+            else if(latVerschil() < -9)
+            {
+                rsnelheid(5);
+                lsnelheid(21);
+            }
+            else
+            {
+                state = Rechtdoorrijden;
                 break;
             }
 
